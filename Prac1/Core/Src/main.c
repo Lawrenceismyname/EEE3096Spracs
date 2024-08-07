@@ -23,6 +23,8 @@
 /* USER CODE BEGIN Includes */
 #include <stdint.h>
 #include "stm32f0xx.h"
+
+#include <lcd_stm32f0.c>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,6 +46,22 @@ TIM_HandleTypeDef htim16;
 
 /* USER CODE BEGIN PV */
 // TODO: Define input variables
+
+uint8_t patterns[9][8] = {
+		{0,0,0,0,0,0,0,0},
+		{1,1,1,0,1,0,0,1},
+		{1,1,0,1,0,0,1,0},
+		{1,0,1,0,0,1,0,0},
+		{0,1,0,0,1,0,0,0},
+		{1,0,0,1,0,0,0,0},
+		{0,0,1,0,0,0,0,0},
+		{0,1,0,0,0,0,0,0},
+		{1,0,0,0,0,0,0,0}
+};
+
+uint8_t counterPattern=0;	//counter
+
+void SetLEDs(uint8_t *pattern);	//defining function //*pattern makes 1d array type
 
 
 /* USER CODE END PV */
@@ -92,6 +110,8 @@ int main(void)
 
   // TODO: Start timer TIM16
 
+  HAL_TIM_Base_Start_IT(&htim16);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,8 +123,35 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
     // TODO: Check pushbuttons to change timer delay
-    
-    
+	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) {
+	  	__HAL_TIM_SET_AUTORELOAD(&htim16, (1000/2)-1);  //0.5s delay
+	  	init_LCD();
+		lcd_command(CLEAR);
+		lcd_putstring("0.5s TIMER");
+	  }
+		else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) == GPIO_PIN_RESET){
+			__HAL_TIM_SET_AUTORELOAD(&htim16, (2000)-1);  //2s delay
+			init_LCD();
+			lcd_command(CLEAR);
+			lcd_putstring("2s TIMER");
+		}
+		else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2) == GPIO_PIN_RESET){
+			__HAL_TIM_SET_AUTORELOAD(&htim16, (1000)-1);  //1s delay
+			init_LCD();
+			lcd_command(CLEAR);
+			lcd_putstring("1s TIMER");
+		}
+		else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3) == GPIO_PIN_RESET){
+			counterPattern = 1; //for resetting the the patterns.
+			SetLEDs(patterns[counterPattern]);
+			init_LCD();
+			lcd_command(CLEAR);
+			lcd_putstring("RESET PATTERN...");
+
+
+
+			HAL_Delay(10);		//Small Delay to debounce the buttons
+		}
 
   }
   /* USER CODE END 3 */
@@ -318,6 +365,17 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void SetLEDs(uint8_t *pattern){
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, pattern[0]);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, pattern[1]);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, pattern[2]);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, pattern[3]);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, pattern[4]);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, pattern[5]);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, pattern[6]);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, pattern[7]);
+}
+
 // Timer rolled over
 void TIM16_IRQHandler(void)
 {
@@ -326,7 +384,11 @@ void TIM16_IRQHandler(void)
 
 	// TODO: Change LED pattern
 	// print something
+	__HAL_TIM_CLEAR_IT(&htim16, TIM_IT_UPDATE);
 
+	//update pattern
+	counterPattern = (counterPattern + 1)%9;
+	SetLEDs(patterns[counterPattern]);
   
 }
 
