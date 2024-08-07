@@ -1,14 +1,5 @@
-Waddup Zainodine 
-This is the read me
-Im talking shit to please 
-This prac got me on my knees 
-and Im fiending for ladiez
+Embedded Systems Pracs
 
-Im a trash talker
-big man walker
-we on a training arc 
-getting dubs in battery park
+Created by Lawrie and Zain
 
-then I sprained my ankle, talk about a tangle
-i only knew boredom since my ankle took me out of this table mangle
-i sayy whoop whoop got get to work
+For the purpose of learning about embedded systems 2
