@@ -126,7 +126,7 @@ int main(void)
     // TODO: Check pushbuttons to change timer delay
 	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) {
 	  	__HAL_TIM_SET_AUTORELOAD(&htim16, (1000/2)-1);  //0.5s delay
-	  	init_LCD();
+	  	init_LCD();			//initialise and clear LCD for adding a sentence to LCD.
 		lcd_command(CLEAR);
 		lcd_putstring("0.5s TIMER");
 	  }
