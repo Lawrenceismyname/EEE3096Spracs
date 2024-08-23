@@ -36,7 +36,7 @@
 // TODO: Add values for below variables
 #define NS 128       // Number of samples in LUT
 #define TIM2CLK  8000000 // STM Clock frequency
-#define F_SIGNAL  500 // Frequency of output analog signal
+#define F_SIGNAL  3200 // Frequency of output analog signal
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -115,7 +115,7 @@ int main(void)
   HAL_TIM_OC_Start(&htim2, TIM_CHANNEL_1);
 
   // TODO: Start DMA in IT mode on TIM2->CH1; Source is LUT and Dest is TIM3->CCR3; start with Sine LUT
-  HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t) Sin_LUT, DestAddress, NS);
+  HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t)Sin_LUT, DestAddress, NS);
 
   // TODO: Write current waveform to LCD ("Sine")
   delay(3000);
@@ -196,7 +196,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 100;
+  htim2.Init.Period = TIM2_Ticks - 1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -352,9 +352,49 @@ void EXTI0_1_IRQHandler(void)
 	static uint32_t PrevPush = 0;
 	uint32_t NextPush = HAL_GetTick();
 
+
+
 	// TODO: Disable DMA transfer and abort IT, then start DMA in IT mode with new LUT and re-enable transfer
 	// HINT: Consider using C's "switch" function to handle LUT changes
-	
+	if ((NextPush - PrevPush) > 200) {  // Debounce (200ms delay)
+		static int currentWave = 0;
+		__HAL_TIM_DISABLE_DMA(&htim2, TIM_DMA_CC1);
+		HAL_DMA_Abort_IT(&hdma_tim2_ch1); // Stop DMA transfer
+
+
+		// Cycle through the waveforms
+		switch (currentWave) {
+			case 0:
+				delay(3000);
+				lcd_command(CLEAR);
+				lcd_putstring("Sawtooth");
+				HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t)saw_LUT, DestAddress, NS);
+				__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC1);
+				currentWave = 1;
+				break;
+      
+			  case 1:
+				  delay(3000);
+				  lcd_command(CLEAR);
+				  lcd_putstring("Triangle");
+				  HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t)triangle_LUT, DestAddress, NS);
+				  __HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC1);
+				  currentWave = 2;
+			  break;
+
+      default:
+				delay(3000);
+				lcd_command(CLEAR);
+				lcd_putstring("Sine");
+				HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t)Sin_LUT, DestAddress, NS);
+				__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC1);
+				currentWave = 0;
+				break;
+
+		}
+	}
+
+	PrevPush = NextPush;
 
 
 	HAL_GPIO_EXTI_IRQHandler(Button0_Pin); // Clear interrupt flags
