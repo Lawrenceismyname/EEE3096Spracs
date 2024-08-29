@@ -59,7 +59,7 @@ TIM_HandleTypeDef htim16;
 /* USER CODE BEGIN PV */
 
 // TODO: Define input variables
-
+uint8_t toggle = 0;
 
 /* USER CODE END PV */
 
@@ -445,6 +445,24 @@ static void MX_GPIO_Init(void)
 void EXTI0_1_IRQHandler(void)
 {
 	// TODO: Add code to switch LED7 delay frequency
+	static uint32_t prevPushTime = 0;
+
+	if (HAL_GetTicks() - prevPushTime > 100){
+
+		toggle += 1;
+
+		switch (toggle){
+			case 1:
+				changePeriod(1000);
+			break;
+			default:
+				changePeriod(500);
+			break;
+		}
+		toggle = toggle%2;
+	}
+
+	prevPushTime = HAL_GetTicks();
 	
   
 
@@ -493,8 +511,9 @@ uint32_t pollADC(void){
 // Calculate PWM CCR value
 uint32_t ADCtoCCR(uint32_t adc_val){
   // TODO: Calculate CCR value (val) using an appropriate equation
-
-	//return val;
+		uint32_t ARR = __HAL_TIM_GET_AUTORELOAD(&htim3); //ARR value
+		uint32_t val = (ARR/4095)*HAL_ADC_GetValue(&hadc);
+	return val;
 }
 
 void ADC1_COMP_IRQHandler(void)
