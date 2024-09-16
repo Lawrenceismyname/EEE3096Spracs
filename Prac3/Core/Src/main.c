@@ -60,6 +60,7 @@ TIM_HandleTypeDef htim16;
 
 // TODO: Define input variables
 uint8_t toggle = 0;
+uint32_t adc_val;
 
 /* USER CODE END PV */
 
