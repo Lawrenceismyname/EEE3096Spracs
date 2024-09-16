@@ -60,6 +60,7 @@ TIM_HandleTypeDef htim16;
 
 // TODO: Define input variables
 uint8_t toggle = 0;
+uint8_t Pot1 =0;
 
 /* USER CODE END PV */
 
@@ -146,7 +147,7 @@ int main(void)
   {
 
 	// TODO: Poll ADC
-
+	 Pot1 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
 
 	// TODO: Get CRR
   
