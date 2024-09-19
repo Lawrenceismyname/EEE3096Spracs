@@ -59,11 +59,16 @@ TIM_HandleTypeDef htim16;
 /* USER CODE BEGIN PV */
 
 // TODO: Define input variables
-uint8_t toggle = 0;
+uint32_t current_time = 0;
+uint32_t prev_time = 0;
+uint32_t delay_led = 500; //delay for 500ms
+//unsigned long debounceTicks = 0; //the time since the last press
+//unsigned long debounceTime = 200;//debouncing time
+
+//array of 8-bit binary integers
+uint8_t data[6] = {0b10101010, 0b01010101, 0b11001100, 0b00110011, 0b11110000, 0b00001111};
+uint16_t address = 0;//eeeprom address
 uint32_t adc_val;
-uint32_t Pot1;
-
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -139,8 +144,11 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3); // Start PWM on TIM3 Channel 3
 
   // TODO: Write all bytes to EEPROM using "write_to_address"
-  
-  
+  uint8_t index = 0;
+  while(index < 6){
+	  write_to_address(address, data[index]);
+	  index++;
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -149,10 +157,10 @@ int main(void)
   {
 
 	// TODO: Poll ADC
-	 Pot1 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
+adc_val = pollADC();//read analogue adc value from potentiometer
 
 	// TODO: Get CRR
-  
+  CCR = ADCtoCCR(adc_val);
 
   // Update PWM value
 	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, CCR);
@@ -448,26 +456,27 @@ static void MX_GPIO_Init(void)
 void EXTI0_1_IRQHandler(void)
 {
 	// TODO: Add code to switch LED7 delay frequency
-	static uint32_t prevPushTime = 0;
+	current_time = HAL_GetTick();
 
-	if (HAL_GetTicks() - prevPushTime > 100){   //debouncing buttons
-
-		toggle += 1;
-
-		switch (toggle){
-			case 1:
-				changePeriod(1000);
-			break;
-			default:
-				changePeriod(500);
-			break;
+	//ensures unwanted noise within udration is not registered
+	if((current_time - prev_time)> 200){
+		if(delay_led = 500 ){ //if frequency of led is 2Hz
+			delay_led = 1000;//toggle the frequency of LED by changing delay
+			htim6.Init.Period = delay_led -1;
+		}else if(delay_led = 1000){ //if frequency of led is 1Hz
+			delay_led = 500;
+			htim6.Init.Period = delay_led -1;
 		}
-		toggle = toggle%2;
+
+		//update TIM6 with the new period; ensure execution complete
+		    if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+		    {
+		      Error_Handler();
+		    }
+
 	}
 
-	prevPushTime = HAL_GetTicks();
-	  
-
+	prev_time = current_time;//update the last time since click
 	HAL_GPIO_EXTI_IRQHandler(Button0_Pin); // Clear interrupt flags
 }
 
@@ -485,19 +494,42 @@ void TIM16_IRQHandler(void)
 	// Acknowledge interrupt
 	HAL_TIM_IRQHandler(&htim16);
 
+	char decimalValue[16];//buffer
+
 	// TODO: Initialise a string to output second line on LCD
 
 
 	// TODO: Change LED pattern; output 0x01 if the read SPI data is incorrect
-	
-  
+	if (address > 5){
+			//reset temp to stay within range of array (from 0 to 6)
+			address= 0;
+		}
+			//validate pattern in EEProm with original
+		if (read_from_address(address)==data[address]){
+
+			snprintf(decimalValue, sizeof(decimalValue), "%d", read_from_address(address));
+			writeLCD(decimalValue);
+
+
+		}
+		else{
+			writeLCD("SPI ERROR!");
+
+				    //set LED7 on (high)
+				    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+		}
+		//iterate tempaddress
+		address++;
 
 }
 
 // TODO: Complete the writeLCD function
 void writeLCD(char *char_in){
   delay(3000);
-	
+  lcd_command(CLEAR);
+  lcd_putstring("EEPROM byte:");
+  lcd_command(LINE_TWO);
+  lcd_putstring(char_in);
   
 }
 
@@ -513,14 +545,17 @@ uint32_t pollADC(void){
 // Calculate PWM CCR value
 uint32_t ADCtoCCR(uint32_t adc_val){
   // TODO: Calculate CCR value (val) using an appropriate equation
-		uint32_t ARR = __HAL_TIM_GET_AUTORELOAD(&htim3); //ARR value
-		uint32_t ccr = ((ARR + 1)/4095)*adc_val;    //calculation
-	return ccr;
+	uint32_t val_ccr;
+
+	//Duty cycle = CRR/ARR, CRR = Duty Cycle * ARR
+	val_ccr = (adc_val * 47999) / 4095;
+
+	return val_ccr;
 }
 
 void ADC1_COMP_IRQHandler(void)
 {
-	//adc_val = HAL_ADC_GetValue(&hadc); // read adc value
+	adc_val = HAL_ADC_GetValue(&hadc); // read adc value
 	HAL_ADC_IRQHandler(&hadc); //Clear flags
 }
 
