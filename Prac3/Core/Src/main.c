@@ -61,6 +61,8 @@ TIM_HandleTypeDef htim16;
 // TODO: Define input variables
 uint8_t toggle = 0;
 uint32_t adc_val;
+uint32_t Pot1;
+
 
 /* USER CODE END PV */
 
@@ -147,7 +149,7 @@ int main(void)
   {
 
 	// TODO: Poll ADC
-
+	 Pot1 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
 
 	// TODO: Get CRR
   
@@ -448,7 +450,7 @@ void EXTI0_1_IRQHandler(void)
 	// TODO: Add code to switch LED7 delay frequency
 	static uint32_t prevPushTime = 0;
 
-	if (HAL_GetTicks() - prevPushTime > 100){
+	if (HAL_GetTicks() - prevPushTime > 100){   //debouncing buttons
 
 		toggle += 1;
 
@@ -464,8 +466,7 @@ void EXTI0_1_IRQHandler(void)
 	}
 
 	prevPushTime = HAL_GetTicks();
-	
-  
+	  
 
 	HAL_GPIO_EXTI_IRQHandler(Button0_Pin); // Clear interrupt flags
 }
@@ -513,8 +514,8 @@ uint32_t pollADC(void){
 uint32_t ADCtoCCR(uint32_t adc_val){
   // TODO: Calculate CCR value (val) using an appropriate equation
 		uint32_t ARR = __HAL_TIM_GET_AUTORELOAD(&htim3); //ARR value
-		uint32_t val = (ARR/4095)*HAL_ADC_GetValue(&hadc);
-	return val;
+		uint32_t ccr = ((ARR + 1)/4095)*adc_val;    //calculation
+	return ccr;
 }
 
 void ADC1_COMP_IRQHandler(void)
