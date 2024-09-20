@@ -61,7 +61,7 @@ TIM_HandleTypeDef htim16;
 // TODO: Define input variables
 uint32_t current_time = 0;
 uint32_t prev_time = 0;
-uint32_t delay_led = 500; //delay for 500ms
+uint32_t delay_led = 500; //500ms delay
 //unsigned long debounceTicks = 0; //the time since the last press
 //unsigned long debounceTime = 200;//debouncing time
 
