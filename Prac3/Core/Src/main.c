@@ -495,10 +495,10 @@ void TIM16_IRQHandler(void)
 	// Acknowledge interrupt
 	HAL_TIM_IRQHandler(&htim16);
 
-	char decimalValue[16];//buffer
 
-	// TODO: Initialise a string to output second line on LCD
 
+	// TODO: Initialise a string to output second line on LC-D
+	char charArray[16];//buffer
 
 	// TODO: Change LED pattern; output 0x01 if the read SPI data is incorrect
 	if (address > 5){
@@ -511,8 +511,8 @@ void TIM16_IRQHandler(void)
 	spi_delay(100);
 	if (num == data[address]){
 
-		snprintf(decimalValue, sizeof(decimalValue), "%d", read_from_address(address));
-		writeLCD(decimalValue);
+		snprintf(charArray, sizeof(charArray), "%d", read_from_address(address));
+		writeLCD(charArray);
 
 
 	}
