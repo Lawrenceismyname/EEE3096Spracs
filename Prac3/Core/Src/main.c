@@ -62,12 +62,11 @@ TIM_HandleTypeDef htim16;
 uint32_t current_time = 0;
 uint32_t prev_time = 0;
 uint32_t delay_led = 500; //500ms delay
-//unsigned long debounceTicks = 0; //the time since the last press
-//unsigned long debounceTime = 200;//debouncing time
+
 
 //array of 8-bit binary integers
-uint8_t data[6] = {0b10101010, 0b01010101, 0b11001100, 0b00110011, 0b11110000, 0b00001111};
-uint16_t address = 0;//eeeprom address
+uint8_t data[6] = {0b10101010, 0b01010101, 0b11001100, 0b00110011, 0b11110000, 0b00001111}; //Data array
+uint16_t address = 0;//EEprom address
 uint32_t adc_val;
 /* USER CODE END PV */
 
@@ -147,7 +146,9 @@ int main(void)
   uint8_t index = 0;
   while(index < 6){
 	  write_to_address(address, data[index]);
+
 	  index++;
+	  spi_delay(100);
   }
   /* USER CODE END 2 */
 
@@ -162,8 +163,8 @@ adc_val = pollADC();//read analogue adc value from potentiometer
 	// TODO: Get CRR
   CCR = ADCtoCCR(adc_val);
 
-  // Update PWM value
-	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, CCR);
+  // Update PWM value		(- 500 to make it turn off)
+	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, CCR/4);
 
     /* USER CODE END WHILE */
 
@@ -464,7 +465,7 @@ void EXTI0_1_IRQHandler(void)
 			delay_led = 1000;//toggle the frequency of LED by changing delay
 			htim6.Init.Period = delay_led -1;
 		}else if(delay_led = 1000){ //if frequency of led is 1Hz
-			delay_led = 500;
+			delay_led = 1000;
 			htim6.Init.Period = delay_led -1;
 		}
 
@@ -501,25 +502,28 @@ void TIM16_IRQHandler(void)
 
 	// TODO: Change LED pattern; output 0x01 if the read SPI data is incorrect
 	if (address > 5){
-			//reset temp to stay within range of array (from 0 to 6)
+
 			address= 0;
 		}
-			//validate pattern in EEProm with original
-		if (read_from_address(address)==data[address]){
 
-			snprintf(decimalValue, sizeof(decimalValue), "%d", read_from_address(address));
-			writeLCD(decimalValue);
+		//validate byte at address
+	uint8_t num = read_from_address(address);
+	spi_delay(100);
+	if (num == data[address]){
+
+		snprintf(decimalValue, sizeof(decimalValue), "%d", read_from_address(address));
+		writeLCD(decimalValue);
 
 
-		}
-		else{
-			writeLCD("SPI ERROR!");
+	}
+	else{
+		writeLCD("SPI ERROR!");
 
-				    //set LED7 on (high)
-				    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-		}
-		//iterate tempaddress
-		address++;
+				//set LED72
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+	}
+	//iterate address
+	address++;
 
 }
 
@@ -547,7 +551,6 @@ uint32_t ADCtoCCR(uint32_t adc_val){
   // TODO: Calculate CCR value (val) using an appropriate equation
 	uint32_t val_ccr;
 
-	//Duty cycle = CRR/ARR, CRR = Duty Cycle * ARR
 	val_ccr = (adc_val * 47999) / 4095;
 
 	return val_ccr;
