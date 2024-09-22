@@ -509,16 +509,11 @@ void TIM16_IRQHandler(void)
 		//validate byte at address
 	uint8_t num = read_from_address(address);
 	spi_delay(100);
-	if (num == data[address]){
-
-		snprintf(charArray, sizeof(charArray), "%d", read_from_address(address));
-		writeLCD(charArray);
+	snprintf(charArray, sizeof(charArray), "%d", read_from_address(address));
+	writeLCD(charArray);
 
 
-	}
-	else{
-		writeLCD("SPI ERROR!");
-	}
+
 	//iterate address
 	address++;
 
