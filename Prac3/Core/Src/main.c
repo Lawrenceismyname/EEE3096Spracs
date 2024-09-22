@@ -518,9 +518,6 @@ void TIM16_IRQHandler(void)
 	}
 	else{
 		writeLCD("SPI ERROR!");
-
-				//set LED72
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
 	}
 	//iterate address
 	address++;
