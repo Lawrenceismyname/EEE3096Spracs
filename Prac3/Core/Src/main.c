@@ -163,7 +163,7 @@ adc_val = pollADC();//read analogue adc value from potentiometer
 	// TODO: Get CRR
   CCR = ADCtoCCR(adc_val);
 
-  // Update PWM value		(- 500 to make it turn off)
+  // Update PWM value		( divide by 4  to make it turn off)
 	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, CCR/4);
 
     /* USER CODE END WHILE */
