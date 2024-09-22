@@ -142,7 +142,7 @@ int main(void)
   uint32_t CCR = 0;
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3); // Start PWM on TIM3 Channel 3
 
-  // TODO: Write all bytes to EEPROM using "write_to_address"
+  // TODO: Write bytes to EEPROM using "write_to_address"
   uint8_t index = 0;
   while(index < 6){
 	  write_to_address(address, data[index]);
@@ -459,7 +459,7 @@ void EXTI0_1_IRQHandler(void)
 	// TODO: Add code to switch LED7 delay frequency
 	current_time = HAL_GetTick();
 
-	//ensures unwanted noise within udration is not registered
+	//ensures unwanted noise within duration is not registered
 	if((current_time - prev_time)> 200){
 		if(delay_led = 500 ){ //if frequency of led is 2Hz
 			delay_led = 1000;//toggle the frequency of LED by changing delay
