@@ -38,11 +38,11 @@ ASM_Main:
 
 main_loop:
 
-    LDR R0, GPIOA_BASE        @ Load GPIOA base address
-    LDR R4, [R0, #0x10]       @ Load GPIOA_IDR to check pushbutton state
+    LDR R0, GPIOA_BASE        @ Load base address, GPIOA_BASE
+    LDR R4, [R0, #0x10]       @ Load GPIOA_IDR to check pushbuttons
 
-    @ Check if no buttons are pressed
-    MOVS R6, #0b1111          @ Move 0b1111 into R5 (to check PA0-PA3)
+    @ Checks if no buttons are pressed
+    MOVS R6, #0b1111          @ Move 0b1111 into R5, checks PA0 to PA3
     ANDS R4, R4, R6           @ Mask only PA0-PA3 pins
     CMP R4, #0b1111           @ Check if no buttons are pressed (all inputs high)
     BEQ increment_default      @ If no buttons are pressed, use default increment
