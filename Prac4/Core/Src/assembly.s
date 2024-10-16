@@ -50,7 +50,7 @@ main_loop:
     @ Check if PA0 (SW2) is pressed
     MOVS R6, #0b1111          @ Mask PA0 (bit 0)
     ANDS R4, R4, R6           @ Update R4 value using bitwise AND
-    CMP R4, #0b1110           @ Check if PA0 is pressed (low state)
+    CMP R4, #0b1110           @ Check if PA0 is pressed
     BEQ increment_by_two       @ If PA0 is pressed, increment by 2
 
     @ Check if PA1 is pressed
@@ -120,7 +120,7 @@ mask_leds:
 write_leds:
     LDR R0, GPIOB_BASE        @ Load GPIOB base address
     STR R2, [R0, #0x14]       @ Write the LED value to GPIOB ODR
-    B main_loop               @ Repeat the loop
+    B main_loop               @ Iterate the loop
 
 @ Long Delay function
 long_delay:
